@@ -1,9 +1,0 @@
-hypothesis
-jupyter
-jupytext
-notebookjs
-numpy
-pytest
-torch
-torchtyping
-git+https://github.com/chalk-diagrams/chalk

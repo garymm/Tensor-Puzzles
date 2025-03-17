@@ -1,0 +1,26 @@
+[project]
+name = "tensor-puzzles"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "hypothesis",
+    "jupyter",
+    "jupytext",
+    "matplotlib",
+    "notebookjs",
+    "numpy",
+    "pytest",
+    "torch",
+    "torchtyping",
+    "chalk-diagrams @ git+https://github.com/chalk-diagrams/chalk@6899b958f11e96d4a22ceaab81f31f6a7c87d019",
+]
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+# we only need torch for the tensorboard writer
+torch = { index = "pytorch-cpu" }

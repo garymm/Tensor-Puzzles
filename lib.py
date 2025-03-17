@@ -1,6 +1,6 @@
 
 
-        
+
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import integers, lists, composite, floats
 from hypothesis import given
@@ -28,7 +28,7 @@ def color(v):
         return d.fill_color(Color("orange")).fill_opacity(0.4 + 0.6 *( v / 10))
     elif v < 0:
         return d.fill_color(Color("blue")).fill_opacity(0.4 + 0.6 * ( abs(v) / 10))
-    
+
 def draw_matrix(mat):
     return vcat((hcat((color(v)
                        for j, v in enumerate(inner)))
@@ -40,28 +40,29 @@ def grid(diagrams):
     for i, row in enumerate(diagrams):
         mh = 0
         for j, col in enumerate(row):
-            env = col.get_envelope()
-            mhs[i] = max(env.height, mhs[i])
-            mws[j] = max(mws[j], env.width)
+            env: Envelope = col.get_envelope()
+            height, width = (0, 0) if env.is_empty else (env.height, env.width)
+            mhs[i] = max(height, mhs[i])
+            mws[j] = max(mws[j], width)
     return vcat([hcat([col.center_xy().with_envelope(rectangle(mws[j], mhs[i]))
                        for j, col in enumerate(row)], 1.0) for i, row in enumerate(diagrams)], 1.0)
-            
+
 def draw_example(data):
-    
+
 
     name = data["name"]
     keys = list(data["vals"][0].keys())
     # cols = [[vstrut(0)] + [vstrut(0.5) / text(f"Ex. {i}", 0.5).fill_color(Color("black")).line_width(0.0) / vstrut(0.5) for i in range(len(data["vals"]))]]
     cols = []
     for k in keys:
-        mat = [(vstrut(0.5) / text(k, 0.5).fill_color(Color("black")).line_width(0.0) / vstrut(0.5))]         
+        mat = [(vstrut(0.5) / text(k, 0.5).fill_color(Color("black")).line_width(0.0) / vstrut(0.5))]
         for ex in data["vals"]:
-            v2 = ex[k]           
+            v2 = ex[k]
             mat.append(draw_matrix(v2))
         cols.append(mat)
-    
+
     full = grid(cols)
-    
+
     full = (
         vstrut(1)
         / text(name, 0.75).fill_color(Color("black")).line_width(0)
@@ -74,10 +75,10 @@ def draw_example(data):
     height = 50 * env.height
     chalk.set_svg_height(300)
     return rectangle(env.width, env.height).fill_color(Color("white")) + full
-    
+
 def draw_examples(name, examples):
     data = {"name":name,
-                  "vals" :[{k: [v.tolist()] if len(v.shape) == 1 else v.tolist() 
+                  "vals" :[{k: [v.tolist()] if len(v.shape) == 1 else v.tolist()
                         for k, v in example.items()}
                         for example in examples ] }
     return draw_example(data)
@@ -126,7 +127,7 @@ def spec(draw, x, min_size=1):
             i_val = i if i.isdigit() else sizes[i]
             j_val = j if j.isdigit() else sizes[j]
             sizes[n] = eval('{}{}{}'.format(i_val, op,j_val))
-    
+
     # Create tensors for each size.
     ret = {}
     for k in gth:
@@ -147,7 +148,7 @@ def spec(draw, x, min_size=1):
             arrays(
                 shape=shape,
                 dtype=dtype,
-                elements=integers(min_value=-5, max_value=5) if 
+                elements=integers(min_value=-5, max_value=5) if
                          dtype == int else None,
                 unique=False
             )
@@ -166,26 +167,26 @@ def make_test(name, problem, problem_spec, add_sizes=[], constraint=lambda d: d)
         out = example["return"].tolist()
         del example["return"]
         problem_spec(*example.values(), out)
-        
+
         for size in add_sizes:
             example[size] = sizes[size]
 
         yours = None
         try:
             yours = problem(*map(tensor, example.values()))
-            
+
         except NotImplementedError:
             pass
         for size in add_sizes:
             del example[size]
         example["target"] = tensor(out)
         if yours is not None:
-            example["yours"] = yours 
+            example["yours"] = yours
         examples.append(example)
-        
+
     diagram = draw_examples(name, examples)
     display(SVG(diagram._repr_svg_()))
-    
+
     @given(spec(problem))
     def test_problem(d):
         d, sizes = d

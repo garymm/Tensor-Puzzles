@@ -1,18 +1,12 @@
-
-
-
 from hypothesis.extra.numpy import arrays
-from hypothesis.strategies import integers, lists, composite, floats
+from hypothesis.strategies import integers, composite
 from hypothesis import given
 import numpy as np
 import random
 import sys
 import typing
-import matplotlib.pyplot as plt
 
-import urllib
 import torch
-import time
 from chalk import *
 import chalk
 from colour import Color
